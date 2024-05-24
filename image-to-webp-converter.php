@@ -4,8 +4,8 @@ Plugin Name: Image to WebP/AVIF Converter
 Plugin URI: https://example.com/plugin-url
 Description: Converts images to WebP or AVIF format upon upload or via bulk conversion. Includes WP CLI and UI for bulk operations.
 Version: 1.3
-Author: Your Name
-Author URI: https://example.com
+Author: Aon
+Author URI: https://aon.sh
 License: GPLv2 or later
 Text Domain: image-to-webp
 Domain Path: /languages
