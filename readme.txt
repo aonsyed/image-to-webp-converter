@@ -2,7 +2,7 @@
 Contributors: yourname
 Tags: image, conversion, webp, avif, imagick
 Requires at least: 5.0
-Tested up to: 6.5.3
+Tested up to: 5.7
 Requires PHP: 7.0
 Stable tag: trunk
 License: GPLv2 or later
@@ -31,10 +31,10 @@ The Imagick extension must be installed and enabled on your server.
 
 == Changelog ==
 
-= 1.3 =
-* Initial release.
+= 1.4 =
+* Fixed issues with conversion on upload and corrected URL handling.
 
 == Upgrade Notice ==
 
-= 1.3 =
-* Initial release.
+= 1.4 =
+* Fixed issues with conversion on upload and corrected URL handling.
