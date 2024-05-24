@@ -27,7 +27,6 @@ function convert_image_on_upload($file) {
     foreach ($formats as $format) {
         $converted_file = convert_image($file['file'], $format);
         if ($converted_file) {
-            // Add the converted file to metadata (this can help in cases where plugins or themes use this data)
             $file['converted_files'][$format] = $converted_file;
         }
     }
@@ -41,8 +40,14 @@ function webp_convert_images($args, $assoc_args) {
 }
 
 function image_to_webp_convert() {
-    check_ajax_referer('image_to_webp_nonce', 'nonce');
-    if (!class_exists('Imagick')) wp_send_json_error(__('Imagick is not available.', 'image-to-webp'));
+    if (!isset($_POST['image_to_webp_nonce_field']) || !wp_verify_nonce($_POST['image_to_webp_nonce_field'], 'image_to_webp_nonce')) {
+        wp_send_json_error('Invalid nonce');
+    }
+
+    if (!class_exists('Imagick')) {
+        wp_send_json_error(__('Imagick is not available.', 'image-to-webp'));
+    }
+
     process_images($_POST, 'ajax');
 }
 
