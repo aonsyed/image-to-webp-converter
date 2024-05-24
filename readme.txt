@@ -38,3 +38,7 @@ The Imagick extension must be installed and enabled on your server.
 
 = 1.4 =
 * Fixed issues with conversion on upload and corrected URL handling.
+
+= 2.1 =
+
+* Fix bugs

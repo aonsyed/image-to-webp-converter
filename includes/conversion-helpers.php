@@ -24,10 +24,31 @@ function convert_image($file_path, $format = 'webp', $log_path = null, $skip_lar
 
 function update_media_library_url($old_path, $new_path) {
     global $wpdb;
+
     $old_url = str_replace(wp_upload_dir()['basedir'], wp_upload_dir()['baseurl'], $old_path);
     $new_url = str_replace(wp_upload_dir()['basedir'], wp_upload_dir()['baseurl'], $new_path);
+
     $wpdb->query($wpdb->prepare("UPDATE $wpdb->posts SET guid = %s WHERE guid = %s", $new_url, $old_url));
     $wpdb->query($wpdb->prepare("UPDATE $wpdb->postmeta SET meta_value = %s WHERE meta_value = %s", $new_url, $old_url));
+
+    // Update the _wp_attached_file meta key
+    $meta_value = get_post_meta($post_id, '_wp_attached_file', true);
+    $new_meta_value = str_replace(basename($old_path), basename($new_path), $meta_value);
+    update_post_meta($post_id, '_wp_attached_file', $new_meta_value);
+
+    // Update the file paths in _wp_attachment_metadata
+    $meta_data = wp_get_attachment_metadata($post_id);
+    if (isset($meta_data['file'])) {
+        $meta_data['file'] = str_replace(basename($old_path), basename($new_path), $meta_data['file']);
+    }
+    if (isset($meta_data['sizes'])) {
+        foreach ($meta_data['sizes'] as $size => $size_data) {
+            if (isset($size_data['file'])) {
+                $meta_data['sizes'][$size]['file'] = str_replace(basename($old_path), basename($new_path), $size_data['file']);
+            }
+        }
+    }
+    wp_update_attachment_metadata($post_id, $meta_data);
 }
 
 function is_valid_date($file_path, $year, $month) {
