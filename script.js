@@ -9,12 +9,15 @@ jQuery(document).ready(function($) {
 
         $.post(ajaxurl, data, function(response) {
             if (response.success) {
-                alert('Conversion completed!');
+                response.data.progress_updates.forEach(function(update) {
+                    $('#progress-bar-inner').css('width', update.progress + '%').text(update.progress + '%');
+                });
+                alert(response.data.message);
                 $('#image-to-webp-progress').hide();
             } else {
                 alert('Error: ' + response.data);
             }
-        }).fail(function(xhr, status, error) {
+        }, 'json').fail(function(xhr, status, error) {
             alert('An error occurred: ' + error);
         });
     });
@@ -29,11 +32,14 @@ jQuery(document).ready(function($) {
 
         $.post(ajaxurl, data, function(response) {
             if (response.success) {
-                alert('Conversion completed!');
+                response.data.progress_updates.forEach(function(update) {
+                    $('#progress-bar-inner').css('width', update.progress + '%').text(update.progress + '%');
+                });
+                alert(response.data.message);
             } else {
                 alert('Error: ' + response.data);
             }
-        }).fail(function(xhr, status, error) {
+        }, 'json').fail(function(xhr, status, error) {
             alert('An error occurred: ' + error);
         });
     });

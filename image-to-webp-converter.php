@@ -40,13 +40,8 @@ function webp_convert_images($args, $assoc_args) {
 }
 
 function image_to_webp_convert() {
-    if (!isset($_POST['image_to_webp_nonce_field']) || !wp_verify_nonce($_POST['image_to_webp_nonce_field'], 'image_to_webp_nonce')) {
-        wp_send_json_error('Invalid nonce');
-    }
-
-    if (!class_exists('Imagick')) {
-        wp_send_json_error(__('Imagick is not available.', 'image-to-webp'));
-    }
+    check_ajax_referer('image_to_webp_nonce', 'image_to_webp_nonce_field');
+    if (!class_exists('Imagick')) wp_send_json_error(__('Imagick is not available.', 'image-to-webp'));
 
     process_images($_POST, 'ajax');
 }
@@ -66,6 +61,7 @@ function process_images($args, $mode) {
     $total_files = iterator_count($files);
     $processed_files = 0;
     $converted_images = [];
+    $progress_updates = [];
 
     foreach ($files as $file) {
         if (in_array($file->getExtension(), ['jpg', 'jpeg', 'png']) && is_valid_date($file->getRealPath(), $year, $month)) {
@@ -81,17 +77,26 @@ function process_images($args, $mode) {
             }
         }
         $processed_files++;
-        if ($mode === 'ajax') update_progress($processed_files, $total_files);
+        $progress = round(($processed_files / $total_files) * 100);
+        $progress_updates[] = ['progress' => $progress, 'message' => "Processed $processed_files of $total_files files."];
+    }
+
+    if ($mode === 'ajax') {
+        wp_send_json_success([
+            'progress_updates' => $progress_updates,
+            'message' => __('Conversion process completed.', 'image-to-webp')
+        ]);
     }
 
     if ($scan_only) {
-        if (empty($converted_images)) $mode === 'cli' ? WP_CLI::success("No images found that need conversion.") : wp_send_json_success("No images found that need conversion.");
-        else {
+        if (empty($converted_images)) {
+            WP_CLI::success("No images found that need conversion.");
+        } else {
             $message = __("Images that need conversion:", 'image-to-webp') . " " . implode(', ', $converted_images);
-            $mode === 'cli' ? WP_CLI::success($message) : wp_send_json_success($message);
+            WP_CLI::success($message);
         }
     } else {
-        $mode === 'cli' ? WP_CLI::success("Conversion process completed.") : wp_send_json_success(__('Conversion process completed.', 'image-to-webp'));
+        WP_CLI::success("Conversion process completed.");
     }
 }
 
@@ -126,12 +131,6 @@ function is_valid_date($file_path, $year, $month) {
 function log_message($message, $log_path = null) {
     if ($log_path) file_put_contents($log_path, $message . PHP_EOL, FILE_APPEND);
     else error_log($message);
-}
-
-function update_progress($processed_files, $total_files) {
-    $progress = round(($processed_files / $total_files) * 100);
-    echo json_encode(['progress' => $progress, 'message' => "Processed $processed_files of $total_files files."]);
-    flush();
 }
 
 function image_to_webp_admin_menu() {
