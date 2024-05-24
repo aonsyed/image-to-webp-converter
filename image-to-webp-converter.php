@@ -3,7 +3,7 @@
 Plugin Name: Image to WebP/AVIF Converter
 Plugin URI: https://example.com/plugin-url
 Description: Converts images to WebP or AVIF format upon upload or via bulk conversion. Includes WP CLI and UI for bulk operations.
-Version: 1.3
+Version: 1.4
 Author: Aon
 Author URI: https://aon.sh
 License: GPLv2 or later
@@ -22,7 +22,17 @@ if (defined('WP_CLI') && WP_CLI) WP_CLI::add_command('webp-convert', 'webp_conve
 
 function convert_image_on_upload($file) {
     if (!class_exists('Imagick')) return $file;
-    return convert_image($file['file'], 'webp');
+
+    $formats = ['webp', 'avif'];
+    foreach ($formats as $format) {
+        $converted_file = convert_image($file['file'], $format);
+        if ($converted_file) {
+            // Add the converted file to metadata (this can help in cases where plugins or themes use this data)
+            $file['converted_files'][$format] = $converted_file;
+        }
+    }
+
+    return $file;
 }
 
 function webp_convert_images($args, $assoc_args) {
@@ -37,7 +47,7 @@ function image_to_webp_convert() {
 }
 
 function process_images($args, $mode) {
-    $formats = isset($args['format']) ? (array) $args['format'] : ['webp'];
+    $formats = isset($args['format']) ? (array) $args['format'] : ['webp', 'avif'];
     $uploads = wp_upload_dir();
     $base_dir = $uploads['basedir'];
     $log_path = isset($args['log']) ? sanitize_text_field($args['log']) : null;
@@ -93,9 +103,8 @@ function convert_image($file_path, $format = 'webp', $log_path = null, $skip_lar
             return false;
         }
 
-        unlink($file_path);
         log_message("Converted {$file_path} to {$converted_path}.", $log_path);
-        return ['original' => $file_path, 'converted' => $converted_path];
+        return $converted_path;
     } catch (Exception $e) {
         log_message("Error converting {$file_path}: " . $e->getMessage(), $log_path);
         return false;
