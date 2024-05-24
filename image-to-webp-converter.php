@@ -3,7 +3,7 @@
 Plugin Name: Image to WebP/AVIF Converter
 Plugin URI: https://example.com/plugin-url
 Description: Converts images to WebP or AVIF format upon upload or via bulk conversion. Includes WP CLI and UI for bulk operations.
-Version: 1.4
+Version: 1.5
 Author: Aon
 Author URI: https://aon.sh
 License: GPLv2 or later
@@ -25,6 +25,10 @@ function convert_image_on_upload($file) {
 
     $formats = ['webp', 'avif'];
     foreach ($formats as $format) {
+        if (!Imagick::queryFormats(strtoupper($format))) {
+            log_message("Imagick does not support {$format} format.");
+            continue;
+        }
         $converted_file = convert_image($file['file'], $format);
         if ($converted_file) {
             $file['converted_files'][$format] = $converted_file;
@@ -66,6 +70,10 @@ function process_images($args, $mode) {
     foreach ($files as $file) {
         if (in_array($file->getExtension(), ['jpg', 'jpeg', 'png']) && is_valid_date($file->getRealPath(), $year, $month)) {
             foreach ($formats as $format) {
+                if (!Imagick::queryFormats(strtoupper($format))) {
+                    log_message("Imagick does not support {$format} format.");
+                    continue;
+                }
                 $result = convert_image($file->getRealPath(), $format, $log_path, $skip_larger);
                 if ($result) {
                     $converted_images[] = $file->getRealPath();
@@ -113,6 +121,7 @@ function convert_image($file_path, $format = 'webp', $log_path = null, $skip_lar
             return false;
         }
 
+        unlink($file_path);
         log_message("Converted {$file_path} to {$converted_path}.", $log_path);
         return $converted_path;
     } catch (Exception $e) {
