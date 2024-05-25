@@ -4,7 +4,14 @@ class Logger {
     private static $log_file;
 
     public static function init() {
-        self::$log_file = plugin_dir_path(__FILE__) . '../logs/conversion_log.txt';
+        $log_dir = plugin_dir_path(__FILE__) . '../logs';
+        if (!file_exists($log_dir)) {
+            mkdir($log_dir, 0755, true);
+        }
+        self::$log_file = $log_dir . '/conversion.log';
+        if (!file_exists(self::$log_file)) {
+            touch(self::$log_file);
+        }
     }
 
     public static function log($message) {

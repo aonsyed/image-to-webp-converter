@@ -2,8 +2,8 @@
 /**
  * Plugin Name: Image Optimizer
  * Description: Optimizes images and converts them to WebP or AVIF format.
- * Version: 1.0
- * Author: Your Name
+ * Version: 1.3
+ * Author: Aon
  * Text Domain: image-optimizer
  * Domain Path: /languages
  */

@@ -15,6 +15,10 @@ class Admin_UI {
         add_filter('media_row_actions', [__CLASS__, 'add_convert_button'], 10, 2);
         add_action('admin_init', [__CLASS__, 'handle_single_conversion']);
 
+        // Add media library columns
+        add_filter('manage_media_columns', [__CLASS__, 'add_media_columns']);
+        add_action('manage_media_custom_column', [__CLASS__, 'render_media_columns'], 10, 2);
+
         // Admin notices
         add_action('admin_notices', [__CLASS__, 'display_admin_notices']);
     }
@@ -40,7 +44,8 @@ class Admin_UI {
                 submit_button();
                 ?>
             </form>
-            <button id="schedule-bulk-conversion" class="button button-primary"><?php _e('Schedule Bulk Conversion', 'image-optimizer'); ?></button>
+            <button id="schedule-bulk-conversion" class="btn btn-primary"><?php _e('Schedule Bulk Conversion', 'image-optimizer'); ?></button>
+            <button id="clean-up-optimized-images" class="btn btn-danger"><?php _e('Clean Up Optimized Images', 'image-optimizer'); ?></button>
             <label>
                 <input type="checkbox" id="toggle-scheduler" <?php checked(get_option('image_optimizer_enable_scheduler', false)); ?>>
                 <?php _e('Enable Scheduler', 'image-optimizer'); ?>
@@ -49,90 +54,19 @@ class Admin_UI {
                 <input type="checkbox" id="toggle-conversion-on-upload" <?php checked(get_option('image_optimizer_convert_on_upload', true)); ?>>
                 <?php _e('Convert on Upload', 'image-optimizer'); ?>
             </label>
-            <style>
-                .image-optimizer-settings input[type="number"] {
-                    width: 60px;
-                }
-                .image-optimizer-settings label {
-                    display: block;
-                    margin-bottom: 10px;
-                }
-                .image-optimizer-settings .description {
-                    font-size: 14px;
-                    color: #666;
-                }
-            </style>
-            <script>
-                jQuery(document).ready(function($) {
-                    $('#schedule-bulk-conversion').on('click', function() {
-                        $.ajax({
-                            url: imageOptimizerAjax.ajax_url,
-                            type: 'POST',
-                            data: {
-                                action: 'schedule_bulk_conversion',
-                                nonce: imageOptimizerAjax.nonce
-                            },
-                            success: function(response) {
-                                if (response.success) {
-                                    alert('<?php _e('Bulk conversion scheduled successfully', 'image-optimizer'); ?>');
-                                } else {
-                                    alert('<?php _e('Error scheduling bulk conversion', 'image-optimizer'); ?>');
-                                }
-                            },
-                            error: function(xhr, status, error) {
-                                console.error(error);
-                                alert('<?php _e('Error scheduling bulk conversion', 'image-optimizer'); ?>');
-                            }
-                        });
-                    });
-
-                    $('#toggle-scheduler').on('change', function() {
-                        $.ajax({
-                            url: imageOptimizerAjax.ajax_url,
-                            type: 'POST',
-                            data: {
-                                action: 'toggle_scheduler',
-                                nonce: imageOptimizerAjax.nonce,
-                                enabled: $(this).is(':checked')
-                            },
-                            success: function(response) {
-                                if (response.success) {
-                                    alert('<?php _e('Scheduler toggled successfully', 'image-optimizer'); ?>');
-                                } else {
-                                    alert('<?php _e('Error toggling scheduler', 'image-optimizer'); ?>');
-                                }
-                            },
-                            error: function(xhr, status, error) {
-                                console.error(error);
-                                alert('<?php _e('Error toggling scheduler', 'image-optimizer'); ?>');
-                            }
-                        });
-                    });
-
-                    $('#toggle-conversion-on-upload').on('change', function() {
-                        $.ajax({
-                            url: imageOptimizerAjax.ajax_url,
-                            type: 'POST',
-                            data: {
-                                action: 'toggle_conversion_on_upload',
-                                nonce: imageOptimizerAjax.nonce,
-                                enabled: $(this).is(':checked')
-                            },
-                            success: function(response) {
-                                if (response.success) {
-                                    alert('<?php _e('Conversion on upload toggled successfully', 'image-optimizer'); ?>');
-                                } else {
-                                    alert('<?php _e('Error toggling conversion on upload', 'image-optimizer'); ?>');
-                                }
-                            },
-                            error: function(xhr, status, error) {
-                                console.error(error);
-                                alert('<?php _e('Error toggling conversion on upload', 'image-optimizer'); ?>');
-                            }
-                        });
-                    });
-                });
-            </script>
+            <label>
+                <input type="checkbox" id="toggle-remove-originals" <?php checked(get_option('image_optimizer_remove_originals', false)); ?>>
+                <?php _e('Remove Originals on Conversion', 'image-optimizer'); ?>
+            </label>
+            <label>
+                <select id="set-conversion-format" name="image_optimizer_conversion_format">
+                    <option value="both" <?php selected(get_option('image_optimizer_conversion_format', 'both'), 'both'); ?>><?php _e('WebP and AVIF', 'image-optimizer'); ?></option>
+                    <option value="webp" <?php selected(get_option('image_optimizer_conversion_format', 'both'), 'webp'); ?>><?php _e('WebP', 'image-optimizer'); ?></option>
+                    <option value="avif" <?php selected(get_option('image_optimizer_conversion_format', 'both'), 'avif'); ?>><?php _e('AVIF', 'image-optimizer'); ?></option>
+                </select>
+                <?php _e('Conversion Format', 'image-optimizer'); ?>
+            </label>
+            <script src="<?php echo plugin_dir_url(__FILE__) . '../assets/js/admin.js'; ?>"></script>
         </div>
         <?php
     }
@@ -215,7 +149,8 @@ class Admin_UI {
     }
 
     public static function add_convert_button($actions, $post) {
-        if ($post->post_mime_type === 'image/jpeg' || $post->post_mime_type === 'image/png') {
+        $is_optimized = get_post_meta($post->ID, 'image_optimizer_optimized', true);
+        if (($post->post_mime_type === 'image/jpeg' || $post->post_mime_type === 'image/png') && !$is_optimized) {
             $actions['convert_to_webp_avif'] = '<a href="#" class="convert-to-webp-avif" data-id="' . esc_attr($post->ID) . '">' . __('Convert to WebP/AVIF', 'image-optimizer') . '</a>';
         }
         return $actions;
@@ -226,12 +161,38 @@ class Admin_UI {
             $post_id = absint($_GET['convert_to_webp_avif']);
             $image_path = get_attached_file($post_id);
             try {
-                Image_Converter::convert_image($image_path);
+                $data = Image_Converter::convert_image($image_path);
+                if ($data) {
+                    update_post_meta($post_id, 'image_optimizer_optimized', true);
+                    update_post_meta($post_id, 'image_optimizer_sizes', $data);
+                }
             } catch (Exception $e) {
                 error_log($e->getMessage());
             }
             wp_redirect(remove_query_arg('convert_to_webp_avif'));
             exit;
+        }
+    }
+
+    public static function add_media_columns($columns) {
+        $columns['image_optimizer'] = __('Image Optimizer', 'image-optimizer');
+        return $columns;
+    }
+
+    public static function render_media_columns($column_name, $post_id) {
+        if ($column_name === 'image_optimizer') {
+            $is_optimized = get_post_meta($post_id, 'image_optimizer_optimized', true);
+            $sizes = get_post_meta($post_id, 'image_optimizer_sizes', true);
+            if ($is_optimized && $sizes) {
+                echo sprintf(
+                    __('Original: %s bytes<br>WebP: %s bytes<br>AVIF: %s bytes', 'image-optimizer'),
+                    number_format_i18n($sizes['original_size']),
+                    number_format_i18n($sizes['webp_size']),
+                    number_format_i18n($sizes['avif_size'])
+                );
+            } else {
+                echo '<a href="' . esc_url(add_query_arg('convert_to_webp_avif', $post_id)) . '" class="btn btn-primary">' . __('Optimize', 'image-optimizer') . '</a>';
+            }
         }
     }
 

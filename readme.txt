@@ -57,6 +57,9 @@ Go to 'Settings' > 'Image Optimizer' and select the sizes you want to exclude fr
 == WP-CLI Commands ==
 
 = Convert Images =
-`wp image-optimizer convert --quality=<quality> --sizes=<sizes>`
+`wp image-optimizer convert --year=<year> --month=<month> --format=<format> --quality=<quality> --sizes=<sizes>`
+- `<year>`: The year of the images to convert.
+- `<month>`: The month of the images to convert.
+- `<format>`: The format to convert to (webp, avif, both).
 - `<quality>`: Set the quality for conversion.
 - `<sizes>`: Comma-separated list of image sizes to convert.

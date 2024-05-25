@@ -1,0 +1,40 @@
+/* Include Bootstrap CSS */
+@import url('https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css');
+
+.wrap {
+    padding: 20px;
+}
+
+.form-table th {
+    width: auto;
+    padding: 15px 10px;
+}
+
+.form-table td {
+    padding: 15px 10px;
+}
+
+.form-table input[type="number"] {
+    width: 60px;
+}
+
+.description {
+    font-size: 14px;
+    color: #666;
+}
+
+#schedule-bulk-conversion, #clean-up-optimized-images, #toggle-scheduler, #toggle-conversion-on-upload, #toggle-remove-originals {
+    margin-top: 10px;
+    margin-right: 10px;
+}
+
+.notice {
+    margin-top: 20px;
+}
+
+#toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1055;
+}
