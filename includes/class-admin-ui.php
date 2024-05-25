@@ -35,7 +35,7 @@ class Admin_UI {
 
     public static function create_settings_page() {
         ?>
-        <div class="wrap">
+        <div id="image-optimizer-settings" class="wrap">
             <h1><?php _e('Image Optimizer Settings', 'image-optimizer'); ?></h1>
             <form method="post" action="options.php">
                 <?php
@@ -44,28 +44,45 @@ class Admin_UI {
                 submit_button();
                 ?>
             </form>
-            <button id="schedule-bulk-conversion" class="btn btn-primary"><?php _e('Schedule Bulk Conversion', 'image-optimizer'); ?></button>
-            <button id="clean-up-optimized-images" class="btn btn-danger"><?php _e('Clean Up Optimized Images', 'image-optimizer'); ?></button>
-            <label>
-                <input type="checkbox" id="toggle-scheduler" <?php checked(get_option('image_optimizer_enable_scheduler', false)); ?>>
-                <?php _e('Enable Scheduler', 'image-optimizer'); ?>
-            </label>
-            <label>
-                <input type="checkbox" id="toggle-conversion-on-upload" <?php checked(get_option('image_optimizer_convert_on_upload', true)); ?>>
-                <?php _e('Convert on Upload', 'image-optimizer'); ?>
-            </label>
-            <label>
-                <input type="checkbox" id="toggle-remove-originals" <?php checked(get_option('image_optimizer_remove_originals', false)); ?>>
-                <?php _e('Remove Originals on Conversion', 'image-optimizer'); ?>
-            </label>
-            <label>
-                <select id="set-conversion-format" name="image_optimizer_conversion_format">
-                    <option value="both" <?php selected(get_option('image_optimizer_conversion_format', 'both'), 'both'); ?>><?php _e('WebP and AVIF', 'image-optimizer'); ?></option>
-                    <option value="webp" <?php selected(get_option('image_optimizer_conversion_format', 'both'), 'webp'); ?>><?php _e('WebP', 'image-optimizer'); ?></option>
-                    <option value="avif" <?php selected(get_option('image_optimizer_conversion_format', 'both'), 'avif'); ?>><?php _e('AVIF', 'image-optimizer'); ?></option>
-                </select>
-                <?php _e('Conversion Format', 'image-optimizer'); ?>
-            </label>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2><?php _e('Bulk Actions', 'image-optimizer'); ?></h2>
+                </div>
+                <div class="card-body">
+                    <button id="schedule-bulk-conversion" class="btn btn-primary"><?php _e('Schedule Bulk Conversion', 'image-optimizer'); ?></button>
+                    <button id="clean-up-optimized-images" class="btn btn-danger"><?php _e('Clean Up Optimized Images', 'image-optimizer'); ?></button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2><?php _e('Conversion Settings', 'image-optimizer'); ?></h2>
+                </div>
+                <div class="card-body">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="toggle-scheduler" <?php checked(get_option('image_optimizer_enable_scheduler', false)); ?>>
+                        <label class="form-check-label" for="toggle-scheduler"><?php _e('Enable Scheduler', 'image-optimizer'); ?></label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="toggle-conversion-on-upload" <?php checked(get_option('image_optimizer_convert_on_upload', true)); ?>>
+                        <label class="form-check-label" for="toggle-conversion-on-upload"><?php _e('Convert on Upload', 'image-optimizer'); ?></label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="toggle-remove-originals" <?php checked(get_option('image_optimizer_remove_originals', false)); ?>>
+                        <label class="form-check-label" for="toggle-remove-originals"><?php _e('Remove Originals on Conversion', 'image-optimizer'); ?></label>
+                    </div>
+                    <div class="form-group">
+                        <label for="set-conversion-format"><?php _e('Conversion Format', 'image-optimizer'); ?></label>
+                        <select id="set-conversion-format" class="form-control" name="image_optimizer_conversion_format">
+                            <option value="both" <?php selected(get_option('image_optimizer_conversion_format', 'both'), 'both'); ?>><?php _e('WebP and AVIF', 'image-optimizer'); ?></option>
+                            <option value="webp" <?php selected(get_option('image_optimizer_conversion_format', 'both'), 'webp'); ?>><?php _e('WebP', 'image-optimizer'); ?></option>
+                            <option value="avif" <?php selected(get_option('image_optimizer_conversion_format', 'both'), 'avif'); ?>><?php _e('AVIF', 'image-optimizer'); ?></option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
             <script src="<?php echo plugin_dir_url(__FILE__) . '../assets/js/admin.js'; ?>"></script>
         </div>
         <?php
@@ -110,13 +127,13 @@ class Admin_UI {
 
     public static function webp_quality_callback() {
         $webp_quality = get_option('image_optimizer_webp_quality', 80);
-        echo '<input type="number" name="image_optimizer_webp_quality" value="' . esc_attr($webp_quality) . '" min="0" max="100">';
+        echo '<input type="number" class="form-control" name="image_optimizer_webp_quality" value="' . esc_attr($webp_quality) . '" min="0" max="100">';
         echo '<p class="description">' . __('Set the quality for WebP images (0-100).', 'image-optimizer') . '</p>';
     }
 
     public static function avif_quality_callback() {
         $avif_quality = get_option('image_optimizer_avif_quality', 80);
-        echo '<input type="number" name="image_optimizer_avif_quality" value="' . esc_attr($avif_quality) . '" min="0" max="100">';
+        echo '<input type="number" class="form-control" name="image_optimizer_avif_quality" value="' . esc_attr($avif_quality) . '" min="0" max="100">';
         echo '<p class="description">' . __('Set the quality for AVIF images (0-100).', 'image-optimizer') . '</p>';
     }
 
@@ -125,7 +142,10 @@ class Admin_UI {
         $sizes = get_intermediate_image_sizes();
         foreach ($sizes as $size) {
             $checked = in_array($size, $excluded_sizes) ? 'checked' : '';
-            echo '<label><input type="checkbox" name="image_optimizer_excluded_sizes[]" value="' . esc_attr($size) . '" ' . $checked . '> ' . esc_html($size) . '</label>';
+            echo '<div class="form-check">';
+            echo '<input class="form-check-input" type="checkbox" name="image_optimizer_excluded_sizes[]" value="' . esc_attr($size) . '" ' . $checked . '>';
+            echo '<label class="form-check-label">' . esc_html($size) . '</label>';
+            echo '</div>';
         }
         echo '<p class="description">' . __('Select the image sizes to exclude from conversion.', 'image-optimizer') . '</p>';
     }
