@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Image Optimizer
  * Description: Optimizes images and converts them to WebP or AVIF format.
- * Version: 1.5
+ * Version: 0.6 
  * Author: Aon
  * Text Domain: image-optimizer
  * Domain Path: /languages
@@ -17,6 +17,8 @@ require_once plugin_dir_path(__FILE__) . 'includes/class-image-optimizer.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-image-converter.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-admin-ui.php';
 require_once plugin_dir_path(__FILE__) . 'includes/class-logger.php';
+require_once plugin_dir_path(__FILE__) . 'includes/class-image-servicer.php';
+require_once plugin_dir_path(__FILE__) . 'includes/class-image-scheduler.php';
 require_once plugin_dir_path(__FILE__) . 'cli/class-cli-commands.php';
 
 // Register activation and deactivation hooks

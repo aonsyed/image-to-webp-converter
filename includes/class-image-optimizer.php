@@ -17,11 +17,11 @@ class Image_Optimizer {
         add_action('wp_ajax_toggle_remove_originals', [__CLASS__, 'ajax_toggle_remove_originals']);
         add_action('wp_ajax_set_conversion_format', [__CLASS__, 'ajax_set_conversion_format']);
         // Serve WebP/AVIF images
-        add_filter('wp_get_attachment_url', [__CLASS__, 'serve_optimized_image'], 10, 2);
+        add_filter('wp_get_attachment_url', ['Image_Servicer', 'serve_optimized_image'], 10, 2);
 
         if (get_option('image_optimizer_enable_scheduler', false)) {
             // Hook the scheduled bulk conversion
-            add_action('image_optimizer_bulk_conversion', ['Image_Optimizer', 'run_scheduled_conversion']);
+            add_action('image_optimizer_bulk_conversion', ['Image_Scheduler', 'run_scheduled_conversion']);
         }
 
         // Initialize logger
@@ -43,6 +43,7 @@ class Image_Optimizer {
     public static function optimize_and_convert_image($file) {
         if (get_option('image_optimizer_convert_on_upload', true)) {
             $image_path = $file['file'];
+            $image_path = str_replace(' ', '\\ ', $image_path); // Handle spaces in filenames
             Image_Converter::convert_image($image_path);
         }
         return $file;
@@ -110,51 +111,6 @@ class Image_Optimizer {
         }
 
         wp_send_json_success(__('Bulk conversion scheduled successfully', 'image-optimizer'));
-    }
-
-    public static function run_scheduled_conversion() {
-        // Run the bulk conversion
-        $attachments = get_posts([
-            'post_type' => 'attachment',
-            'post_mime_type' => ['image/jpeg', 'image/png'],
-            'posts_per_page' => -1,
-            'post_status' => 'inherit',
-            'meta_query' => [
-                [
-                    'key' => 'image_optimizer_optimized',
-                    'compare' => 'NOT EXISTS',
-                ],
-            ],
-        ]);
-
-        foreach ($attachments as $attachment) {
-            $image_path = get_attached_file($attachment->ID);
-            try {
-                $data = Image_Converter::convert_image($image_path);
-                if ($data) {
-                    update_post_meta($attachment->ID, 'image_optimizer_optimized', true);
-                    update_post_meta($attachment->ID, 'image_optimizer_sizes', $data);
-                }
-            } catch (Exception $e) {
-                error_log('Error converting image ID ' . $attachment->ID . ': ' . $e->getMessage());
-                Logger::log('Error converting image ID ' . $attachment->ID . ': ' . $e->getMessage());
-            }
-        }
-    }
-
-    public static function serve_optimized_image($url, $post_id) {
-        $upload_dir = wp_get_upload_dir();
-        $image_path = str_replace($upload_dir['baseurl'], $upload_dir['basedir'], $url);
-        $webp_path = preg_replace('/\.(jpe?g|png)$/i', '.webp', $image_path);
-        $avif_path = preg_replace('/\.(jpe?g|png)$/i', '.avif', $image_path);
-
-        if (file_exists($avif_path)) {
-            return str_replace($upload_dir['basedir'], $upload_dir['baseurl'], $avif_path);
-        } elseif (file_exists($webp_path)) {
-            return str_replace($upload_dir['basedir'], $upload_dir['baseurl'], $webp_path);
-        }
-
-        return $url;
     }
 
     public static function ajax_toggle_scheduler() {

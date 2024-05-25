@@ -42,7 +42,14 @@
     @import url('https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css');
 }
 
-/* New CSS for better UI */
 #image-optimizer-settings .card {
+    margin-bottom: 20px;
+}
+
+#image-optimizer-settings .form-check {
+    margin-bottom: 10px;
+}
+
+#image-optimizer-settings .form-group {
     margin-bottom: 20px;
 }
