@@ -1,55 +1,57 @@
-/* Ensure Bootstrap CSS only applies to the plugin settings page */
+/* General styles for the settings page */
 #image-optimizer-settings {
     padding: 20px;
+    max-width: 800px;
 }
 
-#image-optimizer-settings .form-table th {
-    width: auto;
-    padding: 15px 10px;
-}
-
-#image-optimizer-settings .form-table td {
-    padding: 15px 10px;
-}
-
-#image-optimizer-settings .form-table input[type="number"] {
-    width: 60px;
-}
-
-#image-optimizer-settings .description {
-    font-size: 14px;
-    color: #666;
-}
-
-#schedule-bulk-conversion, #clean-up-optimized-images, #toggle-scheduler, #toggle-conversion-on-upload, #toggle-remove-originals {
-    margin-top: 10px;
-    margin-right: 10px;
-}
-
-.notice {
-    margin-top: 20px;
-}
-
-#toast-container {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 1055;
-}
-
-/* Include Bootstrap CSS inside the plugin settings page only */
-#image-optimizer-settings {
-    @import url('https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css');
-}
-
-#image-optimizer-settings .card {
+#image-optimizer-settings h1 {
+    font-size: 24px;
     margin-bottom: 20px;
 }
 
-#image-optimizer-settings .form-check {
+.settings-section {
+    margin-bottom: 20px;
+}
+
+.settings-section h2 {
+    font-size: 20px;
     margin-bottom: 10px;
 }
 
-#image-optimizer-settings .form-group {
-    margin-bottom: 20px;
+.form-field {
+    margin-bottom: 10px;
+}
+
+.form-field label {
+    display: inline-block;
+    margin-left: 5px;
+}
+
+.button {
+    margin-right: 10px;
+}
+
+/* Toast notifications */
+.toast {
+    display: block;
+    margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 4px;
+    color: #fff;
+}
+
+.toast.success {
+    background-color: #4CAF50;
+}
+
+.toast.danger {
+    background-color: #F44336;
+}
+
+.toast-header {
+    font-weight: bold;
+}
+
+.toast-body {
+    margin-top: 5px;
 }

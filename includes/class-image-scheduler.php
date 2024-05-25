@@ -18,7 +18,7 @@ class Image_Scheduler {
 
         foreach ($attachments as $attachment) {
             $image_path = get_attached_file($attachment->ID);
-            $image_path = str_replace(' ', '\\ ', $image_path); // Handle spaces in filenames
+            $image_path = escapeshellcmd($image_path); // Handle spaces in filenames
             try {
                 $data = Image_Converter::convert_image($image_path);
                 if ($data) {

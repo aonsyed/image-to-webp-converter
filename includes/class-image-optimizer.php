@@ -43,7 +43,7 @@ class Image_Optimizer {
     public static function optimize_and_convert_image($file) {
         if (get_option('image_optimizer_convert_on_upload', true)) {
             $image_path = $file['file'];
-            $image_path = str_replace(' ', '\\ ', $image_path); // Handle spaces in filenames
+            $image_path = escapeshellcmd($image_path); // Handle spaces in filenames
             Image_Converter::convert_image($image_path);
         }
         return $file;

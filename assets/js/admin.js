@@ -195,14 +195,14 @@ document.addEventListener('DOMContentLoaded', function () {
 function showToast(title, message, type) {
     const toastContainer = document.getElementById('toast-container');
     const toast = document.createElement('div');
-    toast.className = `toast bg-${type} text-white`;
+    toast.className = `toast ${type}`;
     toast.setAttribute('role', 'alert');
     toast.setAttribute('aria-live', 'assertive');
     toast.setAttribute('aria-atomic', 'true');
     toast.setAttribute('data-bs-delay', '5000');
 
     const toastHeader = document.createElement('div');
-    toastHeader.className = 'toast-header bg-dark text-white';
+    toastHeader.className = 'toast-header';
     toastHeader.innerHTML = `<strong class="me-auto">${title}</strong>`;
     toast.appendChild(toastHeader);
 
