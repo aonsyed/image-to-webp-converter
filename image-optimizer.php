@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Image Optimizer
  * Description: Optimizes images and converts them to WebP or AVIF format.
- * Version: 1.3
+ * Version: 1.5
  * Author: Aon
  * Text Domain: image-optimizer
  * Domain Path: /languages
@@ -25,3 +25,6 @@ register_deactivation_hook(__FILE__, ['Image_Optimizer', 'deactivate']);
 
 // Initialize the plugin
 add_action('plugins_loaded', ['Image_Optimizer', 'init']);
+
+// Register deletion hook
+add_action('delete_attachment', ['Image_Optimizer', 'delete_converted_images']);

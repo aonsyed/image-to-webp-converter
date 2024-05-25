@@ -245,4 +245,10 @@ class Image_Optimizer {
 
         wp_send_json_success(__('Conversion format set successfully', 'image-optimizer'));
     }
+
+    public static function delete_converted_images($post_id) {
+        $image_path = get_attached_file($post_id);
+        @unlink(preg_replace('/\.(jpe?g|png)$/i', '.webp', $image_path));
+        @unlink(preg_replace('/\.(jpe?g|png)$/i', '.avif', $image_path));
+    }
 }
